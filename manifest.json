@@ -1,0 +1,26 @@
+{
+  "name": "Math Hack Terminal",
+  "short_name": "MathHack",
+  "description": "Hack the system with your math skills! Complete cyber math challenges.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#00ff00",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%23000'/%3E%3Ctext x='50%25' y='50%25' font-family='monospace' font-size='200' fill='%2300ff00' text-anchor='middle' dy='0.35em'%3E%7B+%7D%3C/text%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["games", "education"],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1024 768'%3E%3Crect width='1024' height='768' fill='%23000'/%3E%3Ctext x='50%25' y='30%25' font-family='monospace' font-size='48' fill='%2300ff00' text-anchor='middle'%3EMATH HACK TERMINAL%3C/text%3E%3Ctext x='50%25' y='50%25' font-family='monospace' font-size='24' fill='%2300ffff' text-anchor='middle'%3ECyber Math Challenge%3C/text%3E%3C/svg%3E",
+      "sizes": "1024x768",
+      "type": "image/svg+xml",
+      "form_factor": "wide"
+    }
+  ]
+}

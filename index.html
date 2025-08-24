@@ -1,0 +1,2911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Math Hack Terminal - Cyber Math Challenge</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00ff00">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Math Hack">
+    
+    <!-- App Icons -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' fill='%23000' rx='20'/%3E%3Ctext x='50%25' y='50%25' font-family='monospace' font-size='60' fill='%2300ff00' text-anchor='middle' dy='0.35em'%3E%7B+%7D%3C/text%3E%3C/svg%3E">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Orbitron', monospace;
+            background: #000;
+            color: #00ff00;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        /* Matrix rain background */
+        #matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.1;
+            pointer-events: none;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 800px;
+            z-index: 10;
+            position: relative;
+            pointer-events: auto;
+        }
+        
+        /* Main Menu */
+        #main-menu {
+            text-align: center;
+            animation: fadeIn 1s ease-in;
+        }
+        
+        .game-title {
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 20px #00ff00, 0 0 40px #00ff00;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 20px #00ff00, 0 0 40px #00ff00; }
+            to { text-shadow: 0 0 30px #00ff00, 0 0 60px #00ff00, 0 0 80px #00ff00; }
+        }
+        
+        .subtitle {
+            color: #00ffff;
+            margin-bottom: 3rem;
+            font-size: 1.2rem;
+        }
+        
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #00ff00, #00cc00);
+            color: #000;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            width: 300px;
+            position: relative;
+            overflow: hidden;
+            pointer-events: auto;
+            z-index: 100;
+        }
+        
+        .btn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn:hover:before {
+            left: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 255, 0, 0.5);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(45deg, #00ffff, #0099cc);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(45deg, #ff00ff, #cc00cc);
+        }
+        
+        /* Game Screen */
+        #game-screen {
+            display: none;
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid #00ff00;
+            margin-bottom: 2rem;
+        }
+        
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .stat-label {
+            color: #00ffff;
+            font-size: 0.9rem;
+        }
+        
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .timer {
+            color: #ffff00;
+        }
+        
+        .timer.warning {
+            color: #ff0000;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .problem-container {
+            background: rgba(0, 255, 0, 0.05);
+            border: 2px solid #00ff00;
+            padding: 3rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .problem-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #00ff00;
+            animation: scan 2s linear infinite;
+        }
+        
+        @keyframes scan {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(100px); }
+        }
+        
+        .problem-text {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 10px currentColor;
+        }
+        
+        .answer-input {
+            background: #000;
+            border: 2px solid #00ff00;
+            color: #00ff00;
+            font-size: 2rem;
+            padding: 1rem;
+            text-align: center;
+            width: 200px;
+            font-family: 'Orbitron', monospace;
+        }
+        
+        .answer-input:focus {
+            outline: none;
+            box-shadow: 0 0 20px #00ff00;
+        }
+        
+        .feedback {
+            margin-top: 1rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            min-height: 40px;
+        }
+        
+        .feedback.correct {
+            color: #00ffff;
+            animation: flash 0.5s;
+        }
+        
+        .feedback.incorrect {
+            color: #ff0000;
+            animation: shake 0.5s;
+        }
+        
+        @keyframes flash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        
+        .progress-bar {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid #00ff00;
+            height: 30px;
+            margin: 2rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, #00ff00, #00ffff);
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px currentColor;
+        }
+        
+        .power-ups {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .power-up {
+            background: rgba(255, 255, 0, 0.2);
+            border: 2px solid #ffff00;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .power-up:hover {
+            background: rgba(255, 255, 0, 0.4);
+            transform: scale(1.1);
+        }
+        
+        .power-up.used {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        
+        /* Game Over Screen */
+        #game-over {
+            display: none;
+            text-align: center;
+            animation: fadeIn 1s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .game-over-title {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .final-stats {
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid #00ff00;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 1rem 0;
+            font-size: 1.2rem;
+        }
+        
+        /* Difficulty Selection */
+        #difficulty-select {
+            display: none;
+            text-align: center;
+        }
+        
+        .difficulty-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .difficulty-card {
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid #00ff00;
+            padding: 2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .difficulty-card:hover {
+            background: rgba(0, 255, 0, 0.2);
+            transform: scale(1.05);
+        }
+        
+        .difficulty-name {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .difficulty-desc {
+            color: #00ffff;
+            font-size: 0.9rem;
+        }
+        
+        /* Leaderboard */
+        #leaderboard {
+            display: none;
+            text-align: center;
+        }
+        
+        .leaderboard-table {
+            width: 100%;
+            margin: 2rem 0;
+            border-collapse: collapse;
+        }
+        
+        .leaderboard-table th,
+        .leaderboard-table td {
+            padding: 1rem;
+            border: 1px solid #00ff00;
+        }
+        
+        .leaderboard-table th {
+            background: rgba(0, 255, 0, 0.2);
+            color: #00ffff;
+        }
+        
+        .rank-1 { color: #ffd700; }
+        .rank-2 { color: #c0c0c0; }
+        .rank-3 { color: #cd7f32; }
+        
+        /* Combo System */
+        .combo-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4rem;
+            font-weight: bold;
+            pointer-events: none;
+            opacity: 0;
+        }
+        
+        .combo-indicator.show {
+            animation: comboFlash 1s ease-out;
+        }
+        
+        @keyframes comboFlash {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+            50% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.5);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(2);
+            }
+        }
+        
+        /* Touch device improvements */
+        @media (hover: none) and (pointer: coarse) {
+            .btn:hover:before {
+                display: none;
+            }
+            
+            .btn:active {
+                transform: scale(0.98);
+                background: rgba(0, 255, 0, 0.3);
+            }
+            
+            .difficulty-card:hover {
+                background: rgba(0, 255, 0, 0.1);
+            }
+            
+            .difficulty-card:active {
+                background: rgba(0, 255, 0, 0.3);
+                transform: scale(0.98);
+            }
+            
+            /* Larger touch targets for mobile */
+            .btn {
+                min-height: 60px;
+                padding: 15px 30px;
+            }
+            
+            input[type="number"] {
+                min-height: 60px;
+                font-size: 2rem;
+                padding: 15px;
+            }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .game-title {
+                font-size: 2rem;
+            }
+            
+            .problem-text {
+                font-size: 2rem;
+            }
+            
+            .btn {
+                width: 250px;
+                font-size: 1rem;
+            }
+            
+            .container {
+                width: 95%;
+                padding: 10px;
+            }
+            
+            /* Better lesson modal on mobile */
+            .modal-content {
+                width: 95%;
+                height: 90vh;
+                margin: 5vh auto;
+            }
+            
+            /* Trainer content scrolling */
+            #lesson-content {
+                max-height: 70vh;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+
+        /* iPad specific */
+        @media (min-width: 768px) and (max-width: 1024px) {
+            .btn {
+                min-height: 50px;
+                padding: 12px 25px;
+                font-size: 1.1rem;
+            }
+            
+            .problem-text {
+                font-size: 2.5rem;
+            }
+            
+            input[type="number"] {
+                min-height: 50px;
+                font-size: 1.8rem;
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="matrix-bg"></canvas>
+    
+    <div class="container">
+        <!-- Main Menu -->
+        <div id="main-menu">
+            <h1 class="game-title">MATH HACK TERMINAL</h1>
+            <p class="subtitle">Hack the system with your math skills!</p>
+            
+            <div class="menu-buttons">
+                <button class="btn" onclick="showDifficulty()">START MISSION</button>
+                <button class="btn btn-secondary" onclick="startPracticeMode()">PRACTICE MODE</button>
+                <button class="btn btn-secondary" onclick="showTrainer()">MATH TRAINER</button>
+                <button class="btn btn-secondary" onclick="showProgress()">MY PROGRESS</button>
+                <button class="btn btn-secondary" onclick="showLeaderboard()">LEADERBOARD</button>
+                <button class="btn btn-secondary" onclick="showInstructions()">INSTRUCTIONS</button>
+                <button class="btn btn-danger" onclick="toggleSound()">SOUND: ON</button>
+            </div>
+        </div>
+        
+        <!-- Difficulty Selection -->
+        <div id="difficulty-select">
+            <h2 style="font-size: 2rem; margin-bottom: 1rem;">SELECT DIFFICULTY</h2>
+            
+            <div class="difficulty-grid">
+                <div class="difficulty-card" onclick="startGame('rookie')">
+                    <div class="difficulty-name">ROOKIE</div>
+                    <div class="difficulty-desc">Numbers 1-10<br>60 seconds<br>+, -</div>
+                </div>
+                <div class="difficulty-card" onclick="startGame('hacker')">
+                    <div class="difficulty-name">HACKER</div>
+                    <div class="difficulty-desc">Numbers 1-20<br>45 seconds<br>+, -, ×</div>
+                </div>
+                <div class="difficulty-card" onclick="startGame('elite')">
+                    <div class="difficulty-name">ELITE</div>
+                    <div class="difficulty-desc">Numbers 1-50<br>30 seconds<br>All operations</div>
+                </div>
+                <div class="difficulty-card" onclick="startGame('quantum')">
+                    <div class="difficulty-name">QUANTUM</div>
+                    <div class="difficulty-desc">Numbers 1-100<br>20 seconds<br>Complex equations</div>
+                </div>
+            </div>
+            
+            <button class="btn btn-secondary" onclick="showMenu()">BACK TO MENU</button>
+        </div>
+        
+        <!-- Game Screen -->
+        <div id="game-screen">
+            <div class="game-header">
+                <div class="stat">
+                    <span class="stat-label">SCORE:</span>
+                    <span class="stat-value" id="score">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">STREAK:</span>
+                    <span class="stat-value" id="streak">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">TIME:</span>
+                    <span class="stat-value timer" id="timer">60</span>
+                </div>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress"></div>
+            </div>
+            
+            <div class="problem-container">
+                <div class="problem-text" id="problem">5 + 3 = ?</div>
+                <input type="number" class="answer-input" id="answer" autofocus>
+                <div class="feedback" id="feedback"></div>
+            </div>
+            
+            <div class="power-ups">
+                <button class="power-up" id="skip-power" onclick="usePowerUp('skip')">
+                    SKIP (3)
+                </button>
+                <button class="power-up" id="time-power" onclick="usePowerUp('time')">
+                    +10 SEC (1)
+                </button>
+                <button class="power-up" id="hint-power" onclick="usePowerUp('hint')">
+                    HINT (2)
+                </button>
+            </div>
+        </div>
+        
+        <!-- Game Over Screen -->
+        <div id="game-over">
+            <h2 class="game-over-title" id="game-over-title">MISSION COMPLETE!</h2>
+            
+            <div class="final-stats">
+                <div class="stat-row">
+                    <span>FINAL SCORE:</span>
+                    <span id="final-score">0</span>
+                </div>
+                <div class="stat-row">
+                    <span>PROBLEMS SOLVED:</span>
+                    <span id="problems-solved">0</span>
+                </div>
+                <div class="stat-row">
+                    <span>ACCURACY:</span>
+                    <span id="accuracy">0%</span>
+                </div>
+                <div class="stat-row">
+                    <span>BEST STREAK:</span>
+                    <span id="best-streak">0</span>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; justify-content: center;">
+                <button class="btn" onclick="showDifficulty()">PLAY AGAIN</button>
+                <button class="btn btn-secondary" onclick="showMenu()">MAIN MENU</button>
+            </div>
+        </div>
+        
+        <!-- Leaderboard -->
+        <div id="leaderboard">
+            <h2 style="font-size: 2rem; margin-bottom: 1rem;">TOP HACKERS</h2>
+            
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>RANK</th>
+                        <th>NAME</th>
+                        <th>SCORE</th>
+                        <th>DIFFICULTY</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboard-body">
+                    <!-- Populated by JavaScript -->
+                </tbody>
+            </table>
+            
+            <button class="btn btn-secondary" onclick="showMenu()">BACK TO MENU</button>
+        </div>
+        
+        <!-- Practice Mode -->
+        <div id="practice-mode" style="display: none;">
+            <h2 style="font-size: 2rem; margin-bottom: 1rem; text-align: center;">PRACTICE MODE</h2>
+            <p style="text-align: center; color: #00ffff; margin-bottom: 2rem;">No timer - Learn at your own pace!</p>
+            
+            <div class="game-header">
+                <div class="stat">
+                    <span class="stat-label">CORRECT:</span>
+                    <span class="stat-value" id="practice-correct">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">ATTEMPTED:</span>
+                    <span class="stat-value" id="practice-attempted">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">ACCURACY:</span>
+                    <span class="stat-value" id="practice-accuracy">0%</span>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin: 2rem 0;">
+                <label style="margin-right: 1rem;">Choose Operation:</label>
+                <select id="practice-operation" style="background: #000; color: #00ff00; border: 2px solid #00ff00; padding: 0.5rem; font-family: 'Orbitron', monospace;" onchange="generatePracticeProblem()">
+                    <option value="all">All Operations</option>
+                    <option value="+">Addition (+)</option>
+                    <option value="-">Subtraction (-)</option>
+                    <option value="×">Multiplication (×)</option>
+                    <option value="÷">Division (÷)</option>
+                </select>
+                
+                <label style="margin-left: 2rem; margin-right: 1rem;">Difficulty:</label>
+                <select id="practice-difficulty" style="background: #000; color: #00ff00; border: 2px solid #00ff00; padding: 0.5rem; font-family: 'Orbitron', monospace;" onchange="generatePracticeProblem()">
+                    <option value="easy">Easy (1-10)</option>
+                    <option value="medium">Medium (1-25)</option>
+                    <option value="hard">Hard (1-50)</option>
+                </select>
+            </div>
+            
+            <div class="problem-container">
+                <div class="problem-text" id="practice-problem">5 + 3 = ?</div>
+                <input type="number" class="answer-input" id="practice-answer" style="margin: 0 auto;">
+                <div class="feedback" id="practice-feedback"></div>
+                <div id="practice-explanation" style="margin-top: 1rem; color: #00ffff; font-size: 1rem; min-height: 50px;"></div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 2rem;">
+                <button class="btn" onclick="checkPracticeAnswer()">CHECK ANSWER</button>
+                <button class="btn btn-secondary" onclick="generatePracticeProblem()">NEW PROBLEM</button>
+                <button class="btn btn-secondary" onclick="showPracticeHint()">SHOW HINT</button>
+                <button class="btn btn-danger" onclick="showMenu()">EXIT PRACTICE</button>
+            </div>
+        </div>
+        
+        <!-- Math Trainer -->
+        <div id="trainer" style="display: none;">
+            <h2 style="font-size: 2rem; margin-bottom: 1rem; text-align: center;">MATH TRAINER</h2>
+            <p style="text-align: center; color: #00ffff; margin-bottom: 2rem;">Learn how arithmetic operations work!</p>
+            
+            <div style="display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; margin-bottom: 2rem;">
+                <button class="btn btn-secondary" onclick="showLesson('addition')">ADDITION</button>
+                <button class="btn btn-secondary" onclick="showLesson('subtraction')">SUBTRACTION</button>
+                <button class="btn btn-secondary" onclick="showLesson('multiplication')">MULTIPLICATION</button>
+                <button class="btn btn-secondary" onclick="showLesson('division')">DIVISION</button>
+            </div>
+            
+            <!-- Lesson Progress Indicator -->
+            <div id="lesson-progress" style="display: none; text-align: center; margin-bottom: 2rem;">
+                <div style="color: #ffff00; margin-bottom: 1rem;">
+                    Lesson Progress: <span id="lesson-step">1</span> of <span id="lesson-total">5</span>
+                </div>
+                <div style="background: rgba(0, 255, 0, 0.2); border: 1px solid #00ff00; height: 20px; border-radius: 10px;">
+                    <div id="lesson-progress-fill" style="background: linear-gradient(90deg, #00ff00, #00ffff); height: 100%; width: 20%; border-radius: 10px; transition: width 0.5s ease;"></div>
+                </div>
+            </div>
+
+            <div id="lesson-content" style="background: rgba(0, 255, 0, 0.05); border: 2px solid #00ff00; padding: 2rem; margin-bottom: 2rem; min-height: 400px; max-height: 60vh; overflow-y: auto;">
+                <h3 id="lesson-title" style="color: #00ffff; margin-bottom: 1rem;">Select a topic to begin!</h3>
+                
+                <!-- Lesson Section Display -->
+                <div id="lesson-section" style="line-height: 1.8; font-size: 1.1rem;">
+                    Click one of the operation buttons above to learn about it.
+                </div>
+                
+                <!-- Lesson Navigation -->
+                <div id="lesson-navigation" style="text-align: center; margin-top: 2rem; display: none;">
+                    <button class="btn btn-secondary" id="prev-section-btn" onclick="prevLessonSection()" style="display: none;">PREVIOUS</button>
+                    <button class="btn" id="next-section-btn" onclick="nextLessonSection()">NEXT</button>
+                </div>
+                
+                <!-- Knowledge Check Button -->
+                <div id="start-quiz-container" style="text-align: center; margin-top: 2rem; display: none;">
+                    <button class="btn" onclick="startKnowledgeCheck()">START KNOWLEDGE CHECK</button>
+                </div>
+            </div>
+            
+            <!-- Knowledge Check Quiz -->
+            <div id="knowledge-check" style="display: none; background: rgba(0, 255, 0, 0.05); border: 2px solid #00ff00; padding: 2rem; margin-bottom: 2rem;">
+                <h3 style="color: #00ffff; margin-bottom: 1rem;">KNOWLEDGE CHECK</h3>
+                <div id="quiz-progress" style="text-align: center; margin-bottom: 1rem; color: #ffff00;">
+                    Question <span id="current-question">1</span> of <span id="total-questions">5</span>
+                </div>
+                <div id="quiz-question" style="font-size: 1.2rem; margin: 2rem 0; padding: 1rem; background: rgba(0, 255, 255, 0.1); border-radius: 5px;"></div>
+                <div id="quiz-options" style="display: flex; flex-direction: column; gap: 1rem; margin: 2rem 0;"></div>
+                <div id="quiz-feedback" style="margin: 1rem 0; padding: 1rem; font-size: 1.1rem; text-align: center; min-height: 50px;"></div>
+                <div id="quiz-navigation" style="text-align: center; margin-top: 2rem;">
+                    <button class="btn btn-secondary" id="next-question-btn" style="display: none;" onclick="nextQuestion()">NEXT QUESTION</button>
+                    <button class="btn" id="finish-quiz-btn" style="display: none;" onclick="finishKnowledgeCheck()">FINISH & SEE RESULTS</button>
+                </div>
+            </div>
+            
+            <!-- Quiz Results -->
+            <div id="quiz-results" style="display: none; background: rgba(0, 255, 0, 0.05); border: 2px solid #00ff00; padding: 2rem; margin-bottom: 2rem; text-align: center;">
+                <h3 style="color: #00ffff; margin-bottom: 2rem; font-size: 2rem;">KNOWLEDGE CHECK COMPLETE!</h3>
+                <div id="quiz-score" style="font-size: 3rem; margin: 2rem 0; color: #00ff00;"></div>
+                <div id="quiz-grade" style="font-size: 1.5rem; margin: 1rem 0;"></div>
+                <div id="quiz-breakdown" style="margin: 2rem 0; text-align: left; padding: 1rem; background: rgba(0, 255, 255, 0.1); border-radius: 5px;"></div>
+                <div id="quiz-recommendation" style="margin: 2rem 0; padding: 1rem; background: rgba(255, 255, 0, 0.1); border-radius: 5px;"></div>
+                <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
+                    <button class="btn" onclick="retryKnowledgeCheck()">TRY AGAIN</button>
+                    <button class="btn btn-secondary" onclick="backToLesson()">BACK TO LESSON</button>
+                    <button class="btn btn-secondary" onclick="showTrainer()">CHOOSE NEW TOPIC</button>
+                </div>
+            </div>
+            
+            <div style="text-align: center;">
+                <button class="btn btn-danger" onclick="showMenu()">BACK TO MENU</button>
+            </div>
+        </div>
+        
+        <!-- Progress Dashboard -->
+        <div id="progress-dashboard" style="display: none;">
+            <h2 style="font-size: 2rem; margin-bottom: 1rem; text-align: center;">PLAYER PROGRESS</h2>
+            
+            <!-- Player Profile -->
+            <div style="background: rgba(0, 255, 0, 0.05); border: 2px solid #00ff00; padding: 2rem; margin-bottom: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <div>
+                        <h3 style="color: #00ffff; margin-bottom: 0.5rem;">Welcome back, <span id="player-name">Hacker</span>! 👋</h3>
+                        <p>Member since: <span id="player-since">Today</span></p>
+                        <p>Last played: <span id="last-played">Now</span></p>
+                    </div>
+                    <div style="text-align: right;">
+                        <button class="btn btn-secondary" onclick="changePlayerName()" style="width: auto; padding: 0.5rem 1rem; font-size: 1rem;">CHANGE NAME</button>
+                    </div>
+                </div>
+                
+                <!-- Overall Stats -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                    <div style="text-align: center; padding: 1rem; background: rgba(0, 255, 255, 0.1); border-radius: 5px;">
+                        <div style="font-size: 2rem; color: #00ffff;" id="total-problems">0</div>
+                        <div>Problems Solved</div>
+                    </div>
+                    <div style="text-align: center; padding: 1rem; background: rgba(0, 255, 255, 0.1); border-radius: 5px;">
+                        <div style="font-size: 2rem; color: #00ff00;" id="total-accuracy">0%</div>
+                        <div>Overall Accuracy</div>
+                    </div>
+                    <div style="text-align: center; padding: 1rem; background: rgba(0, 255, 255, 0.1); border-radius: 5px;">
+                        <div style="font-size: 2rem; color: #ffff00;" id="best-streak">0</div>
+                        <div>Best Streak</div>
+                    </div>
+                    <div style="text-align: center; padding: 1rem; background: rgba(0, 255, 255, 0.1); border-radius: 5px;">
+                        <div style="font-size: 2rem; color: #ff9900;" id="time-played">0m</div>
+                        <div>Time Played</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Skill Progress -->
+            <div style="background: rgba(0, 255, 0, 0.05); border: 2px solid #00ff00; padding: 2rem; margin-bottom: 2rem;">
+                <h3 style="color: #00ffff; margin-bottom: 1.5rem;">SKILL MASTERY</h3>
+                
+                <div id="skill-progress-list">
+                    <!-- Generated by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Achievements -->
+            <div style="background: rgba(0, 255, 0, 0.05); border: 2px solid #00ff00; padding: 2rem; margin-bottom: 2rem;">
+                <h3 style="color: #00ffff; margin-bottom: 1.5rem;">ACHIEVEMENTS</h3>
+                
+                <div id="achievements-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">
+                    <!-- Generated by JavaScript -->
+                </div>
+                
+                <div style="text-align: center; margin-top: 2rem;">
+                    <p style="color: #ffff00;">Earned <span id="achievements-count">0</span> of <span id="total-achievements">12</span> achievements</p>
+                </div>
+            </div>
+            
+            <!-- Data Management -->
+            <div style="background: rgba(0, 255, 0, 0.05); border: 2px solid #00ff00; padding: 2rem; margin-bottom: 2rem;">
+                <h3 style="color: #00ffff; margin-bottom: 1.5rem;">DATA MANAGEMENT</h3>
+                
+                <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                    <button class="btn btn-secondary" onclick="exportProgress()" style="width: auto;">📥 EXPORT DATA</button>
+                    <button class="btn btn-secondary" onclick="importProgress()" style="width: auto;">📤 IMPORT DATA</button>
+                    <button class="btn" onclick="resetProgress()" style="width: auto; background: linear-gradient(45deg, #ff0000, #cc0000);">🗑️ RESET ALL</button>
+                </div>
+                
+                <input type="file" id="import-file" accept=".json" style="display: none;" onchange="handleImportFile(event)">
+            </div>
+            
+            <div style="text-align: center;">
+                <button class="btn btn-danger" onclick="showMenu()">BACK TO MENU</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Combo Indicator -->
+    <div class="combo-indicator" id="combo">COMBO x2!</div>
+    
+    <!-- Audio Context for sounds -->
+    <script>
+        // Game State
+        let gameState = {
+            score: 0,
+            streak: 0,
+            bestStreak: 0,
+            timeLeft: 60,
+            problemsSolved: 0,
+            totalProblems: 0,
+            currentProblem: null,
+            difficulty: 'rookie',
+            isPlaying: false,
+            soundEnabled: true,
+            powerUps: {
+                skip: 3,
+                time: 1,
+                hint: 2
+            },
+            combo: 1,
+            timer: null
+        };
+        
+        // Difficulty Settings
+        const difficulties = {
+            rookie: {
+                timeLimit: 60,
+                maxNum: 10,
+                operations: ['+', '-'],
+                scoreMultiplier: 1,
+                name: 'Rookie'
+            },
+            hacker: {
+                timeLimit: 45,
+                maxNum: 20,
+                operations: ['+', '-', '×'],
+                scoreMultiplier: 2,
+                name: 'Hacker'
+            },
+            elite: {
+                timeLimit: 30,
+                maxNum: 50,
+                operations: ['+', '-', '×', '÷'],
+                scoreMultiplier: 3,
+                name: 'Elite'
+            },
+            quantum: {
+                timeLimit: 20,
+                maxNum: 100,
+                operations: ['+', '-', '×', '÷'],
+                scoreMultiplier: 5,
+                name: 'Quantum',
+                complex: true
+            }
+        };
+        
+        // Sound System
+        let audioContext;
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+        
+        function playSound(frequency, duration, type = 'sine') {
+            if (!gameState.soundEnabled) return;
+            initAudio();
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = type;
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+        
+        function playCorrect() {
+            playSound(800, 0.1, 'sine');
+            setTimeout(() => playSound(1000, 0.1, 'sine'), 50);
+        }
+        
+        function playIncorrect() {
+            playSound(200, 0.3, 'square');
+        }
+        
+        function playPowerUp() {
+            playSound(1200, 0.2, 'triangle');
+        }
+        
+        // Matrix Background
+        function initMatrixBackground() {
+            const canvas = document.getElementById('matrix-bg');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            const matrix = "0123456789ABCDEF";
+            const matrixArray = matrix.split("");
+            
+            const fontSize = 10;
+            const columns = canvas.width / fontSize;
+            
+            const drops = [];
+            for (let x = 0; x < columns; x++) {
+                drops[x] = 1;
+            }
+            
+            function draw() {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.04)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = '#00ff00';
+                ctx.font = fontSize + 'px monospace';
+                
+                for (let i = 0; i < drops.length; i++) {
+                    const text = matrixArray[Math.floor(Math.random() * matrixArray.length)];
+                    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                    
+                    if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                        drops[i] = 0;
+                    }
+                    drops[i]++;
+                }
+            }
+            
+            setInterval(draw, 35);
+        }
+        
+        // Navigation Functions
+        function showMenu() {
+            hideAllScreens();
+            document.getElementById('main-menu').style.display = 'block';
+        }
+        
+        function showDifficulty() {
+            hideAllScreens();
+            document.getElementById('difficulty-select').style.display = 'block';
+        }
+        
+        function showLeaderboard() {
+            hideAllScreens();
+            document.getElementById('leaderboard').style.display = 'block';
+            loadLeaderboard();
+        }
+        
+        function showInstructions() {
+            alert(`MATH HACK TERMINAL - INSTRUCTIONS
+            
+1. Select your difficulty level
+2. Solve math problems as fast as you can
+3. Build streaks for combo multipliers
+4. Use power-ups strategically:
+   - SKIP: Skip current problem
+   - +10 SEC: Add 10 seconds to timer
+   - HINT: Shows answer range
+5. Higher difficulties = Higher scores
+            
+Good luck, hacker!`);
+        }
+        
+        function hideAllScreens() {
+            document.getElementById('main-menu').style.display = 'none';
+            document.getElementById('difficulty-select').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('game-over').style.display = 'none';
+            document.getElementById('leaderboard').style.display = 'none';
+            document.getElementById('practice-mode').style.display = 'none';
+            document.getElementById('trainer').style.display = 'none';
+            document.getElementById('progress-dashboard').style.display = 'none';
+        }
+        
+        // Game Functions
+        function startGame(difficulty) {
+            hideAllScreens();
+            document.getElementById('game-screen').style.display = 'block';
+            
+            // Reset game state
+            gameState = {
+                score: 0,
+                streak: 0,
+                bestStreak: 0,
+                timeLeft: difficulties[difficulty].timeLimit,
+                problemsSolved: 0,
+                totalProblems: 0,
+                currentProblem: null,
+                difficulty: difficulty,
+                isPlaying: true,
+                soundEnabled: gameState.soundEnabled,
+                powerUps: {
+                    skip: 3,
+                    time: 1,
+                    hint: 2
+                },
+                combo: 1,
+                timer: null
+            };
+            
+            // Update UI
+            updateUI();
+            
+            // Generate first problem
+            generateProblem();
+            
+            // Start timer
+            startTimer();
+            
+            // Focus input
+            document.getElementById('answer').focus();
+            
+            // Setup input handler
+            const input = document.getElementById('answer');
+            input.value = '';
+            input.onkeypress = function(e) {
+                if (e.key === 'Enter') {
+                    checkAnswer();
+                }
+            };
+        }
+        
+        function generateProblem() {
+            const diff = difficulties[gameState.difficulty];
+            const ops = diff.operations;
+            const op = ops[Math.floor(Math.random() * ops.length)];
+            
+            let a, b, answer, problemText;
+            
+            if (diff.complex && Math.random() > 0.5) {
+                // Complex problem (two operations)
+                const op2 = ops[Math.floor(Math.random() * ops.length)];
+                const c = Math.floor(Math.random() * 10) + 1;
+                
+                a = Math.floor(Math.random() * diff.maxNum) + 1;
+                b = Math.floor(Math.random() * 10) + 1;
+                
+                // Calculate in order
+                let intermediate = calculateOperation(a, b, op);
+                answer = calculateOperation(intermediate, c, op2);
+                problemText = `${a} ${op} ${b} ${op2} ${c}`;
+            } else {
+                // Simple problem
+                switch (op) {
+                    case '+':
+                        a = Math.floor(Math.random() * diff.maxNum) + 1;
+                        b = Math.floor(Math.random() * diff.maxNum) + 1;
+                        answer = a + b;
+                        break;
+                    case '-':
+                        a = Math.floor(Math.random() * diff.maxNum) + diff.maxNum / 2;
+                        b = Math.floor(Math.random() * diff.maxNum) + 1;
+                        answer = a - b;
+                        break;
+                    case '×':
+                        a = Math.floor(Math.random() * Math.min(diff.maxNum, 12)) + 1;
+                        b = Math.floor(Math.random() * Math.min(diff.maxNum, 12)) + 1;
+                        answer = a * b;
+                        break;
+                    case '÷':
+                        b = Math.floor(Math.random() * Math.min(diff.maxNum, 12)) + 1;
+                        answer = Math.floor(Math.random() * Math.min(diff.maxNum, 12)) + 1;
+                        a = b * answer;
+                        break;
+                }
+                problemText = `${a} ${op} ${b}`;
+            }
+            
+            gameState.currentProblem = {
+                text: problemText,
+                answer: answer
+            };
+            
+            gameState.totalProblems++;
+            
+            document.getElementById('problem').textContent = problemText + ' = ?';
+            document.getElementById('answer').value = '';
+            document.getElementById('feedback').textContent = '';
+        }
+        
+        function calculateOperation(a, b, op) {
+            switch (op) {
+                case '+': return a + b;
+                case '-': return a - b;
+                case '×': return a * b;
+                case '÷': return Math.floor(a / b);
+                default: return 0;
+            }
+        }
+        
+        function checkAnswer() {
+            const input = document.getElementById('answer');
+            const userAnswer = parseInt(input.value);
+            
+            if (isNaN(userAnswer)) return;
+            
+            const correct = userAnswer === gameState.currentProblem.answer;
+            
+            // Determine operation from problem (simplified detection)
+            let operation = 'addition';
+            if (gameState.currentProblem.text.includes('-')) operation = 'subtraction';
+            else if (gameState.currentProblem.text.includes('×')) operation = 'multiplication';
+            else if (gameState.currentProblem.text.includes('÷')) operation = 'division';
+            
+            // Track progress
+            updateSkillProgress(operation, correct, 1);
+            
+            if (correct) {
+                gameState.problemsSolved++;
+                gameState.streak++;
+                
+                // Update best streak globally
+                if (gameState.streak > playerProgress.statistics.bestStreak) {
+                    playerProgress.statistics.bestStreak = gameState.streak;
+                    saveProgress();
+                }
+                
+                // Check streak achievements
+                if (gameState.streak === 5 && !playerProgress.achievements.includes('streak_5')) {
+                    playerProgress.achievements.push('streak_5');
+                    showAchievementNotification('streak_5');
+                    saveProgress();
+                }
+                if (gameState.streak === 10 && !playerProgress.achievements.includes('streak_10')) {
+                    playerProgress.achievements.push('streak_10');
+                    showAchievementNotification('streak_10');
+                    saveProgress();
+                }
+                
+                // Calculate combo
+                if (gameState.streak > 0 && gameState.streak % 5 === 0) {
+                    gameState.combo = Math.min(gameState.streak / 5 + 1, 5);
+                    showCombo();
+                }
+                
+                // Calculate score
+                const baseScore = 10 * difficulties[gameState.difficulty].scoreMultiplier;
+                const scoreGain = Math.floor(baseScore * gameState.combo);
+                gameState.score += scoreGain;
+                
+                // Update best streak
+                if (gameState.streak > gameState.bestStreak) {
+                    gameState.bestStreak = gameState.streak;
+                }
+                
+                // Show feedback
+                document.getElementById('feedback').className = 'feedback correct';
+                document.getElementById('feedback').textContent = `✓ CORRECT! +${scoreGain}`;
+                
+                playCorrect();
+                
+                // Generate next problem
+                setTimeout(() => generateProblem(), 500);
+            } else {
+                gameState.streak = 0;
+                gameState.combo = 1;
+                
+                document.getElementById('feedback').className = 'feedback incorrect';
+                document.getElementById('feedback').textContent = `✗ INCORRECT! Answer: ${gameState.currentProblem.answer}`;
+                
+                playIncorrect();
+                
+                // Generate next problem after delay
+                setTimeout(() => generateProblem(), 1500);
+            }
+            
+            updateUI();
+        }
+        
+        function usePowerUp(type) {
+            switch (type) {
+                case 'skip':
+                    if (gameState.powerUps.skip > 0) {
+                        gameState.powerUps.skip--;
+                        generateProblem();
+                        playPowerUp();
+                        updatePowerUpButtons();
+                    }
+                    break;
+                case 'time':
+                    if (gameState.powerUps.time > 0) {
+                        gameState.powerUps.time--;
+                        gameState.timeLeft += 10;
+                        playPowerUp();
+                        updatePowerUpButtons();
+                    }
+                    break;
+                case 'hint':
+                    if (gameState.powerUps.hint > 0) {
+                        gameState.powerUps.hint--;
+                        const answer = gameState.currentProblem.answer;
+                        const range = Math.floor(Math.random() * 5) + 3;
+                        const min = answer - range;
+                        const max = answer + range;
+                        document.getElementById('feedback').className = 'feedback';
+                        document.getElementById('feedback').textContent = `Hint: Answer is between ${min} and ${max}`;
+                        playPowerUp();
+                        updatePowerUpButtons();
+                    }
+                    break;
+            }
+        }
+        
+        function updatePowerUpButtons() {
+            document.getElementById('skip-power').textContent = `SKIP (${gameState.powerUps.skip})`;
+            document.getElementById('skip-power').className = gameState.powerUps.skip > 0 ? 'power-up' : 'power-up used';
+            
+            document.getElementById('time-power').textContent = `+10 SEC (${gameState.powerUps.time})`;
+            document.getElementById('time-power').className = gameState.powerUps.time > 0 ? 'power-up' : 'power-up used';
+            
+            document.getElementById('hint-power').textContent = `HINT (${gameState.powerUps.hint})`;
+            document.getElementById('hint-power').className = gameState.powerUps.hint > 0 ? 'power-up' : 'power-up used';
+        }
+        
+        function startTimer() {
+            gameState.timer = setInterval(() => {
+                gameState.timeLeft--;
+                
+                const timerEl = document.getElementById('timer');
+                timerEl.textContent = gameState.timeLeft;
+                
+                if (gameState.timeLeft <= 10) {
+                    timerEl.classList.add('warning');
+                } else {
+                    timerEl.classList.remove('warning');
+                }
+                
+                if (gameState.timeLeft <= 0) {
+                    endGame();
+                }
+                
+                updateUI();
+            }, 1000);
+        }
+        
+        function endGame() {
+            clearInterval(gameState.timer);
+            gameState.isPlaying = false;
+            
+            // Calculate completion time
+            const totalTime = difficulties[gameState.difficulty].timeLimit - gameState.timeLeft;
+            
+            // Check for speed demon achievement
+            if (totalTime <= 20 && gameState.problemsSolved >= 5 && !playerProgress.achievements.includes('speed_demon')) {
+                playerProgress.achievements.push('speed_demon');
+                showAchievementNotification('speed_demon');
+                saveProgress();
+            }
+            
+            hideAllScreens();
+            document.getElementById('game-over').style.display = 'block';
+            
+            // Calculate stats
+            const accuracy = gameState.totalProblems > 0 
+                ? Math.round((gameState.problemsSolved / gameState.totalProblems) * 100)
+                : 0;
+            
+            // Update final stats
+            document.getElementById('final-score').textContent = gameState.score;
+            document.getElementById('problems-solved').textContent = gameState.problemsSolved;
+            document.getElementById('accuracy').textContent = accuracy + '%';
+            document.getElementById('best-streak').textContent = gameState.bestStreak;
+            
+            // Update title based on performance
+            let title = 'MISSION COMPLETE!';
+            if (accuracy >= 90) title = 'PERFECT HACK!';
+            else if (accuracy >= 75) title = 'ELITE PERFORMANCE!';
+            else if (accuracy >= 50) title = 'GOOD ATTEMPT!';
+            else title = 'TRAINING NEEDED!';
+            
+            document.getElementById('game-over-title').textContent = title;
+            
+            // Save to leaderboard
+            saveScore();
+        }
+        
+        function updateUI() {
+            document.getElementById('score').textContent = gameState.score;
+            document.getElementById('streak').textContent = gameState.streak;
+            
+            // Update progress bar
+            const progress = (gameState.problemsSolved / 20) * 100; // Goal: 20 problems
+            document.getElementById('progress').style.width = Math.min(progress, 100) + '%';
+        }
+        
+        function showCombo() {
+            const comboEl = document.getElementById('combo');
+            comboEl.textContent = `COMBO x${gameState.combo}!`;
+            comboEl.classList.add('show');
+            
+            setTimeout(() => {
+                comboEl.classList.remove('show');
+            }, 1000);
+        }
+        
+        function toggleSound() {
+            gameState.soundEnabled = !gameState.soundEnabled;
+            const btn = event.target;
+            btn.textContent = gameState.soundEnabled ? 'SOUND: ON' : 'SOUND: OFF';
+        }
+        
+        // Leaderboard Functions
+        function saveScore() {
+            const scores = JSON.parse(localStorage.getItem('mathHackScores') || '[]');
+            
+            scores.push({
+                name: prompt('Enter your hacker name:') || 'Anonymous',
+                score: gameState.score,
+                difficulty: difficulties[gameState.difficulty].name,
+                date: new Date().toISOString()
+            });
+            
+            // Sort by score and keep top 10
+            scores.sort((a, b) => b.score - a.score);
+            scores.splice(10);
+            
+            localStorage.setItem('mathHackScores', JSON.stringify(scores));
+        }
+        
+        function loadLeaderboard() {
+            const scores = JSON.parse(localStorage.getItem('mathHackScores') || '[]');
+            const tbody = document.getElementById('leaderboard-body');
+            
+            tbody.innerHTML = '';
+            
+            scores.forEach((score, index) => {
+                const row = tbody.insertRow();
+                row.className = index < 3 ? `rank-${index + 1}` : '';
+                
+                row.insertCell(0).textContent = index + 1;
+                row.insertCell(1).textContent = score.name;
+                row.insertCell(2).textContent = score.score;
+                row.insertCell(3).textContent = score.difficulty;
+            });
+            
+            if (scores.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4">No scores yet. Be the first!</td></tr>';
+            }
+        }
+        
+        // Practice Mode Functions
+        let practiceState = {
+            correct: 0,
+            attempted: 0,
+            currentProblem: null
+        };
+        
+        function startPracticeMode() {
+            hideAllScreens();
+            document.getElementById('practice-mode').style.display = 'block';
+            
+            // Reset practice state
+            practiceState = {
+                correct: 0,
+                attempted: 0,
+                currentProblem: null
+            };
+            
+            updatePracticeUI();
+            generatePracticeProblem();
+            
+            // Setup enter key handler
+            const input = document.getElementById('practice-answer');
+            input.value = '';
+            input.onkeypress = function(e) {
+                if (e.key === 'Enter') {
+                    checkPracticeAnswer();
+                }
+            };
+            input.focus();
+        }
+        
+        function generatePracticeProblem() {
+            const operation = document.getElementById('practice-operation').value;
+            const difficulty = document.getElementById('practice-difficulty').value;
+            
+            let maxNum;
+            switch(difficulty) {
+                case 'easy': maxNum = 10; break;
+                case 'medium': maxNum = 25; break;
+                case 'hard': maxNum = 50; break;
+            }
+            
+            let ops = operation === 'all' ? ['+', '-', '×', '÷'] : [operation];
+            let selectedOp = ops[Math.floor(Math.random() * ops.length)];
+            
+            let a, b, answer, problemText;
+            
+            switch (selectedOp) {
+                case '+':
+                    a = Math.floor(Math.random() * maxNum) + 1;
+                    b = Math.floor(Math.random() * maxNum) + 1;
+                    answer = a + b;
+                    break;
+                case '-':
+                    a = Math.floor(Math.random() * maxNum) + Math.floor(maxNum / 2);
+                    b = Math.floor(Math.random() * maxNum) + 1;
+                    answer = a - b;
+                    break;
+                case '×':
+                    a = Math.floor(Math.random() * Math.min(maxNum, 12)) + 1;
+                    b = Math.floor(Math.random() * Math.min(maxNum, 12)) + 1;
+                    answer = a * b;
+                    break;
+                case '÷':
+                    b = Math.floor(Math.random() * Math.min(maxNum, 12)) + 1;
+                    answer = Math.floor(Math.random() * Math.min(maxNum, 12)) + 1;
+                    a = b * answer;
+                    break;
+            }
+            
+            problemText = `${a} ${selectedOp} ${b}`;
+            
+            practiceState.currentProblem = {
+                text: problemText,
+                answer: answer,
+                a: a,
+                b: b,
+                operation: selectedOp
+            };
+            
+            document.getElementById('practice-problem').textContent = problemText + ' = ?';
+            document.getElementById('practice-answer').value = '';
+            document.getElementById('practice-feedback').textContent = '';
+            document.getElementById('practice-explanation').textContent = '';
+            document.getElementById('practice-answer').focus();
+        }
+        
+        function checkPracticeAnswer() {
+            const input = document.getElementById('practice-answer');
+            const userAnswer = parseInt(input.value);
+            
+            if (isNaN(userAnswer)) return;
+            
+            practiceState.attempted++;
+            const correct = userAnswer === practiceState.currentProblem.answer;
+            
+            // Track progress
+            updateSkillProgress(practiceState.currentProblem.operation, correct, 0);
+            
+            if (correct) {
+                practiceState.correct++;
+                document.getElementById('practice-feedback').className = 'feedback correct';
+                document.getElementById('practice-feedback').textContent = '✓ CORRECT!';
+                playCorrect();
+                
+                // Show encouraging explanation
+                showPracticeExplanation(true);
+                
+                // Check for practice master achievement
+                const accuracy = practiceState.attempted > 0 ? (practiceState.correct / practiceState.attempted) * 100 : 0;
+                if (practiceState.attempted >= 10 && accuracy >= 90 && !playerProgress.achievements.includes('practice_master')) {
+                    playerProgress.achievements.push('practice_master');
+                    showAchievementNotification('practice_master');
+                    saveProgress();
+                }
+                
+                setTimeout(() => generatePracticeProblem(), 2000);
+            } else {
+                document.getElementById('practice-feedback').className = 'feedback incorrect';
+                document.getElementById('practice-feedback').textContent = `✗ INCORRECT! The answer is ${practiceState.currentProblem.answer}`;
+                playIncorrect();
+                
+                // Show detailed explanation
+                showPracticeExplanation(false);
+            }
+            
+            updatePracticeUI();
+        }
+        
+        function showPracticeHint() {
+            const prob = practiceState.currentProblem;
+            let hint = '';
+            
+            switch(prob.operation) {
+                case '+':
+                    hint = `Think of it as counting: Start at ${prob.a} and count up ${prob.b} more.`;
+                    break;
+                case '-':
+                    hint = `Think of it as taking away: Start with ${prob.a} and remove ${prob.b}.`;
+                    break;
+                case '×':
+                    hint = `Think of it as groups: ${prob.a} groups of ${prob.b} items each.`;
+                    break;
+                case '÷':
+                    hint = `Think of it as sharing: Split ${prob.a} items into ${prob.b} equal groups.`;
+                    break;
+            }
+            
+            document.getElementById('practice-explanation').textContent = hint;
+        }
+        
+        function showPracticeExplanation(wasCorrect) {
+            const prob = practiceState.currentProblem;
+            let explanation = '';
+            
+            if (wasCorrect) {
+                explanation = 'Great job! ';
+            }
+            
+            switch(prob.operation) {
+                case '+':
+                    explanation += `${prob.a} + ${prob.b} = ${prob.answer} (You combined ${prob.a} and ${prob.b})`;
+                    break;
+                case '-':
+                    explanation += `${prob.a} - ${prob.b} = ${prob.answer} (You had ${prob.a} and took away ${prob.b})`;
+                    break;
+                case '×':
+                    explanation += `${prob.a} × ${prob.b} = ${prob.answer} (That's ${prob.a} groups of ${prob.b})`;
+                    break;
+                case '÷':
+                    explanation += `${prob.a} ÷ ${prob.b} = ${prob.answer} (You split ${prob.a} into ${prob.b} equal parts)`;
+                    break;
+            }
+            
+            document.getElementById('practice-explanation').textContent = explanation;
+        }
+        
+        function updatePracticeUI() {
+            document.getElementById('practice-correct').textContent = practiceState.correct;
+            document.getElementById('practice-attempted').textContent = practiceState.attempted;
+            
+            const accuracy = practiceState.attempted > 0 
+                ? Math.round((practiceState.correct / practiceState.attempted) * 100)
+                : 0;
+            document.getElementById('practice-accuracy').textContent = accuracy + '%';
+        }
+        
+        // Trainer Functions
+        let currentLesson = null;
+        let lessonState = {
+            sections: [],
+            currentIndex: 0,
+            totalSections: 0
+        };
+        let quizState = {
+            questions: [],
+            currentIndex: 0,
+            answers: [],
+            score: 0
+        };
+        
+        function showTrainer() {
+            hideAllScreens();
+            document.getElementById('trainer').style.display = 'block';
+            // Reset displays
+            document.getElementById('lesson-content').style.display = 'block';
+            document.getElementById('lesson-progress').style.display = 'none';
+            document.getElementById('lesson-navigation').style.display = 'none';
+            document.getElementById('knowledge-check').style.display = 'none';
+            document.getElementById('quiz-results').style.display = 'none';
+            
+            // Reset lesson content
+            document.getElementById('lesson-section').innerHTML = 'Click one of the operation buttons above to learn about it.';
+        }
+        
+        function showLesson(operation) {
+            currentLesson = operation;
+            
+            // Create chunked lesson sections
+            lessonState = {
+                sections: createLessonSections(operation),
+                currentIndex: 0,
+                totalSections: 0
+            };
+            
+            lessonState.totalSections = lessonState.sections.length;
+            
+            // Show progress indicator and navigation
+            document.getElementById('lesson-progress').style.display = 'block';
+            document.getElementById('lesson-navigation').style.display = 'block';
+            
+            // Update lesson title
+            const lessonTitles = {
+                addition: 'ADDITION (+)',
+                subtraction: 'SUBTRACTION (-)',
+                multiplication: 'MULTIPLICATION (×)',
+                division: 'DIVISION (÷)'
+            };
+            document.getElementById('lesson-title').textContent = lessonTitles[operation];
+            
+            // Show first section
+            showLessonSection();
+        }
+        
+        function createLessonSections(operation) {
+            const sectionData = {
+                addition: [
+                    {
+                        title: "What is Addition?",
+                        content: `<h4 style="color: #00ffff; margin-bottom: 1rem;">Understanding Addition</h4>
+                        <p>Addition means <strong>combining</strong> or <strong>putting things together</strong>.</p>
+                        <br>
+                        <p>When you add, you're finding the <strong>total</strong> of two or more numbers.</p>
+                        <br>
+                        <p><strong>Think of it like collecting items:</strong><br>
+                        🍎🍎🍎 + 🍎🍎 = 🍎🍎🍎🍎🍎<br>
+                        If you have 3 apples and get 2 more, you now have 5 apples total!</p>`
+                    },
+                    {
+                        title: "Key Terms",
+                        content: `<h4 style="color: #00ffff; margin-bottom: 1rem;">Important Addition Words</h4>
+                        <div style="background: rgba(0, 255, 255, 0.1); padding: 1rem; border-radius: 5px;">
+                        <p><strong style="color: #00ffff;">Addends:</strong> The numbers being added together</p>
+                        <p><strong style="color: #00ffff;">Sum:</strong> The result when you add numbers</p>
+                        <br>
+                        <p><strong>Example:</strong> In 5 + 3 = 8</p>
+                        <p>• 5 and 3 are the <span style="color: #ffff00;">addends</span></p>
+                        <p>• 8 is the <span style="color: #ffff00;">sum</span></p>
+                        </div>`
+                    },
+                    {
+                        title: "Addition Properties",
+                        content: `<h4 style="color: #00ffff; margin-bottom: 1rem;">Cool Addition Rules!</h4>
+                        <p><strong style="color: #00ff00;">Commutative Property:</strong><br>
+                        Order doesn't matter: 3 + 5 = 5 + 3 ✨</p>
+                        <br>
+                        <p><strong style="color: #00ff00;">Associative Property:</strong><br>
+                        You can group any way: (2 + 3) + 4 = 2 + (3 + 4) ✨</p>
+                        <br>
+                        <p><strong style="color: #00ff00;">Identity Property:</strong><br>
+                        Adding zero doesn't change anything: 7 + 0 = 7 ✨</p>`
+                    },
+                    {
+                        title: "Visual Example",
+                        content: `<h4 style="color: #00ffff; margin-bottom: 1rem;">See Addition in Action</h4>
+                        <div style="text-align: center; font-size: 2rem; margin: 2rem 0;">
+                        <p style="color: #ffff00;">3 + 2 = 5</p>
+                        </div>
+                        <div style="text-align: center; font-size: 1.5rem; line-height: 2;">
+                        <p>● ● ●  <span style="color: #00ffff;">+</span>  ● ●  <span style="color: #00ffff;">=</span>  ● ● ● ● ●</p>
+                        <p style="color: #00ffff; font-size: 1rem;">   3        2          5</p>
+                        </div>`
+                    },
+                    {
+                        title: "Try It Yourself!",
+                        content: `<h4 style="color: #00ffff; margin-bottom: 1rem;">Practice Problem</h4>
+                        <div style="text-align: center;">
+                            <p style="font-size: 2rem; margin: 2rem 0; color: #ffff00;">8 + 6 = ?</p>
+                            <p style="margin: 1rem 0;">Method 1: Count up from 8<br>
+                            8 → 9 → 10 → 11 → 12 → 13 → 14</p>
+                            <p style="margin: 1rem 0;">Method 2: Use 10 as a helper<br>
+                            8 + 2 = 10, then 10 + 4 = 14</p>
+                            <div style="margin: 2rem 0;">
+                                <input type="number" id="lesson-practice-answer" style="background: #000; color: #00ff00; border: 2px solid #00ff00; padding: 0.5rem; font-size: 1.5rem; width: 100px; text-align: center;">
+                                <button onclick="checkLessonAnswer(14)" style="margin-left: 1rem; padding: 0.5rem 1rem; background: #00ff00; color: #000; border: none; cursor: pointer;">CHECK</button>
+                                <div id="lesson-answer-feedback" style="margin-top: 1rem; font-size: 1.2rem;"></div>
+                            </div>
+                        </div>`
+                    }
+                ],
+                subtraction: [
+                    {
+                        title: "What is Subtraction?",
+                        content: `<h4 style="color: #00ffff; margin-bottom: 1rem;">Understanding Subtraction</h4>
+                        <p>Subtraction means <strong>taking away</strong> or finding the <strong>difference</strong> between numbers.</p>
+                        <br>
+                        <p>When you subtract, you're removing some amount from a starting number.</p>
+                        <br>
+                        <p><strong>Think of it like giving away items:</strong><br>
+                        🍪🍪🍪🍪🍪 - 🍪🍪 = 🍪🍪🍪<br>
+                        If you have 5 cookies and eat 2, you have 3 left!</p>`
+                    },
+                    {
+                        title: "Key Terms",
+                        content: `<h4 style="color: #00ffff; margin-bottom: 1rem;">Important Subtraction Words</h4>
+                        <div style="background: rgba(0, 255, 255, 0.1); padding: 1rem; border-radius: 5px;">
+                        <p><strong style="color: #00ffff;">Minuend:</strong> The number you start with</p>
+                        <p><strong style="color: #00ffff;">Subtrahend:</strong> The number you subtract</p>
+                        <p><strong style="color: #00ffff;">Difference:</strong> The result of subtraction</p>
+                        <br>
+                        <p><strong>Example:</strong> In 12 - 5 = 7</p>
+                        <p>• 12 is the <span style="color: #ffff00;">minuend</span></p>
+                        <p>• 5 is the <span style="color: #ffff00;">subtrahend</span></p>
+                        <p>• 7 is the <span style="color: #ffff00;">difference</span></p>
+                        </div>`
+                    },
+                    {
+                        title: "Subtraction Rules",
+                        content: `<h4 style="color: #00ffff; margin-bottom: 1rem;">Important Things to Remember</h4>
+                        <p><strong style="color: #ff9900;">Order DOES Matter!</strong><br>
+                        5 - 3 = 2, but 3 - 5 = -2 (negative) ⚠️</p>
+                        <br>
+                        <p><strong style="color: #00ff00;">Think Addition:</strong><br>
+                        Use addition to check: if 8 - 3 = 5, then 5 + 3 = 8 ✓</p>
+                        <br>
+                        <p><strong style="color: #00ff00;">You Can't Take More Than You Have:</strong><br>
+                        Without going negative! 3 - 5 needs special rules.</p>`
+                    },
+                    {
+                        title: "Visual Example",
+                        content: `<h4 style="color: #00ffff; margin-bottom: 1rem;">See Subtraction in Action</h4>
+                        <div style="text-align: center; font-size: 2rem; margin: 2rem 0;">
+                        <p style="color: #ffff00;">5 - 2 = 3</p>
+                        </div>
+                        <div style="text-align: center; font-size: 1.5rem; line-height: 2;">
+                        <p>● ● ● ● ●  <span style="color: #00ffff;">-</span>  <s>● ●</s>  <span style="color: #00ffff;">=</span>  ● ● ●</p>
+                        <p style="color: #00ffff; font-size: 1rem;">     5        2           3</p>
+                        <p style="font-size: 1rem;">(Cross out 2, keep 3)</p>
+                        </div>`
+                    },
+                    {
+                        title: "Try It Yourself!",
+                        content: `<h4 style="color: #00ffff; margin-bottom: 1rem;">Practice Problem</h4>
+                        <div style="text-align: center;">
+                            <p style="font-size: 2rem; margin: 2rem 0; color: #ffff00;">15 - 7 = ?</p>
+                            <p style="margin: 1rem 0;">Method 1: Count down from 15<br>
+                            15 → 14 → 13 → 12 → 11 → 10 → 9 → 8</p>
+                            <p style="margin: 1rem 0;">Method 2: Think addition<br>
+                            What + 7 = 15? The answer is 8!</p>
+                            <div style="margin: 2rem 0;">
+                                <input type="number" id="lesson-practice-answer" style="background: #000; color: #00ff00; border: 2px solid #00ff00; padding: 0.5rem; font-size: 1.5rem; width: 100px; text-align: center;">
+                                <button onclick="checkLessonAnswer(8)" style="margin-left: 1rem; padding: 0.5rem 1rem; background: #00ff00; color: #000; border: none; cursor: pointer;">CHECK</button>
+                                <div id="lesson-answer-feedback" style="margin-top: 1rem; font-size: 1.2rem;"></div>
+                            </div>
+                        </div>`
+                    }
+                ],
+                multiplication: [
+                    {
+                        title: "What is Multiplication?",
+                        content: `<h4 style="color: #00ffff; margin-bottom: 1rem;">Understanding Multiplication</h4>
+                        <p>Multiplication is <strong>repeated addition</strong> - adding the same number multiple times.</p>
+                        <br>
+                        <p>When you multiply, you're finding the total of <strong>equal groups</strong>.</p>
+                        <br>
+                        <p><strong>Think of it like boxes with items:</strong><br>
+                        📦(4) + 📦(4) + 📦(4) = 12<br>
+                        That's 3 boxes with 4 items each = 3 × 4 = 12!</p>`
+                    },
+                    {
+                        title: "Key Terms",
+                        content: `<h4 style="color: #00ffff; margin-bottom: 1rem;">Important Multiplication Words</h4>
+                        <div style="background: rgba(0, 255, 255, 0.1); padding: 1rem; border-radius: 5px;">
+                        <p><strong style="color: #00ffff;">Factors:</strong> The numbers being multiplied</p>
+                        <p><strong style="color: #00ffff;">Product:</strong> The result of multiplication</p>
+                        <br>
+                        <p><strong>Example:</strong> In 4 × 3 = 12</p>
+                        <p>• 4 and 3 are the <span style="color: #ffff00;">factors</span></p>
+                        <p>• 12 is the <span style="color: #ffff00;">product</span></p>
+                        </div>`
+                    },
+                    {
+                        title: "Multiplication Properties",
+                        content: `<h4 style="color: #00ffff; margin-bottom: 1rem;">Special Multiplication Rules!</h4>
+                        <p><strong style="color: #00ff00;">Commutative Property:</strong><br>
+                        Order doesn't matter: 3 × 4 = 4 × 3 ✨</p>
+                        <br>
+                        <p><strong style="color: #00ff00;">Identity Property:</strong><br>
+                        Any number × 1 = that number: 7 × 1 = 7 ✨</p>
+                        <br>
+                        <p><strong style="color: #00ff00;">Zero Property:</strong><br>
+                        Any number × 0 = 0: 100 × 0 = 0 ✨</p>`
+                    },
+                    {
+                        title: "Visual Example",
+                        content: `<h4 style="color: #00ffff; margin-bottom: 1rem;">See Multiplication in Action</h4>
+                        <div style="text-align: center; font-size: 2rem; margin: 2rem 0;">
+                        <p style="color: #ffff00;">3 × 4 = 12</p>
+                        </div>
+                        <div style="text-align: center; font-size: 1.2rem; line-height: 1.8;">
+                        <p>Group 1: ● ● ● ●</p>
+                        <p>Group 2: ● ● ● ●</p>
+                        <p>Group 3: ● ● ● ●</p>
+                        <br>
+                        <p style="color: #00ffff;">3 groups of 4 = 12 total</p>
+                        </div>`
+                    },
+                    {
+                        title: "Try It Yourself!",
+                        content: `<h4 style="color: #00ffff; margin-bottom: 1rem;">Practice Problem</h4>
+                        <div style="text-align: center;">
+                            <p style="font-size: 2rem; margin: 2rem 0; color: #ffff00;">7 × 4 = ?</p>
+                            <p style="margin: 1rem 0;">Method 1: Repeated addition<br>
+                            7 + 7 + 7 + 7 = 28</p>
+                            <p style="margin: 1rem 0;">Method 2: Skip counting<br>
+                            Count by 7s: 7, 14, 21, 28</p>
+                            <div style="margin: 2rem 0;">
+                                <input type="number" id="lesson-practice-answer" style="background: #000; color: #00ff00; border: 2px solid #00ff00; padding: 0.5rem; font-size: 1.5rem; width: 100px; text-align: center;">
+                                <button onclick="checkLessonAnswer(28)" style="margin-left: 1rem; padding: 0.5rem 1rem; background: #00ff00; color: #000; border: none; cursor: pointer;">CHECK</button>
+                                <div id="lesson-answer-feedback" style="margin-top: 1rem; font-size: 1.2rem;"></div>
+                            </div>
+                        </div>`
+                    }
+                ],
+                division: [
+                    {
+                        title: "What is Division?",
+                        content: `<h4 style="color: #00ffff; margin-bottom: 1rem;">Understanding Division</h4>
+                        <p>Division means <strong>splitting into equal groups</strong> or <strong>sharing equally</strong>.</p>
+                        <br>
+                        <p>When you divide, you're finding how many equal groups you can make, or how many items go in each group.</p>
+                        <br>
+                        <p><strong>Think of it like sharing candy:</strong><br>
+                        🍬🍬🍬🍬🍬🍬 ÷ 3 friends = 🍬🍬 each<br>
+                        Share 6 candies with 3 friends = 2 candies each!</p>`
+                    },
+                    {
+                        title: "Key Terms",
+                        content: `<h4 style="color: #00ffff; margin-bottom: 1rem;">Important Division Words</h4>
+                        <div style="background: rgba(0, 255, 255, 0.1); padding: 1rem; border-radius: 5px;">
+                        <p><strong style="color: #00ffff;">Dividend:</strong> The number being divided</p>
+                        <p><strong style="color: #00ffff;">Divisor:</strong> The number you divide by</p>
+                        <p><strong style="color: #00ffff;">Quotient:</strong> The result of division</p>
+                        <br>
+                        <p><strong>Example:</strong> In 20 ÷ 4 = 5</p>
+                        <p>• 20 is the <span style="color: #ffff00;">dividend</span></p>
+                        <p>• 4 is the <span style="color: #ffff00;">divisor</span></p>
+                        <p>• 5 is the <span style="color: #ffff00;">quotient</span></p>
+                        </div>`
+                    },
+                    {
+                        title: "Division Rules",
+                        content: `<h4 style="color: #00ffff; margin-bottom: 1rem;">Important Division Facts</h4>
+                        <p><strong style="color: #00ff00;">Division is the Opposite of Multiplication:</strong><br>
+                        If 4 × 5 = 20, then 20 ÷ 5 = 4 ✨</p>
+                        <br>
+                        <p><strong style="color: #ff9900;">Cannot Divide by Zero:</strong><br>
+                        Division by zero is undefined - it's impossible! ⚠️</p>
+                        <br>
+                        <p><strong style="color: #00ff00;">Think Multiplication:</strong><br>
+                        For 24 ÷ 6, ask "what × 6 = 24?" Answer: 4!</p>`
+                    },
+                    {
+                        title: "Visual Example",
+                        content: `<h4 style="color: #00ffff; margin-bottom: 1rem;">See Division in Action</h4>
+                        <div style="text-align: center; font-size: 2rem; margin: 2rem 0;">
+                        <p style="color: #ffff00;">12 ÷ 3 = 4</p>
+                        </div>
+                        <div style="text-align: center; font-size: 1.2rem; line-height: 1.8;">
+                        <p>● ● ● ● ● ● ● ● ● ● ● ●</p>
+                        <br>
+                        <p>Split into 3 equal groups:</p>
+                        <p>[● ● ● ●] [● ● ● ●] [● ● ● ●]</p>
+                        <br>
+                        <p style="color: #00ffff;">Each group has 4 items</p>
+                        </div>`
+                    },
+                    {
+                        title: "Try It Yourself!",
+                        content: `<h4 style="color: #00ffff; margin-bottom: 1rem;">Practice Problem</h4>
+                        <div style="text-align: center;">
+                            <p style="font-size: 2rem; margin: 2rem 0; color: #ffff00;">24 ÷ 6 = ?</p>
+                            <p style="margin: 1rem 0;">Method 1: Equal groups<br>
+                            How many 6s in 24? 6, 12, 18, 24 → 4 groups</p>
+                            <p style="margin: 1rem 0;">Method 2: Think multiplication<br>
+                            What × 6 = 24? The answer is 4!</p>
+                            <div style="margin: 2rem 0;">
+                                <input type="number" id="lesson-practice-answer" style="background: #000; color: #00ff00; border: 2px solid #00ff00; padding: 0.5rem; font-size: 1.5rem; width: 100px; text-align: center;">
+                                <button onclick="checkLessonAnswer(4)" style="margin-left: 1rem; padding: 0.5rem 1rem; background: #00ff00; color: #000; border: none; cursor: pointer;">CHECK</button>
+                                <div id="lesson-answer-feedback" style="margin-top: 1rem; font-size: 1.2rem;"></div>
+                            </div>
+                        </div>`
+                    }
+                ]
+            };
+            
+            return sectionData[operation] || [];
+        }
+        
+        function showLessonSection() {
+            const section = lessonState.sections[lessonState.currentIndex];
+            
+            // Update progress
+            document.getElementById('lesson-step').textContent = lessonState.currentIndex + 1;
+            document.getElementById('lesson-total').textContent = lessonState.totalSections;
+            
+            const progressPercent = ((lessonState.currentIndex + 1) / lessonState.totalSections) * 100;
+            document.getElementById('lesson-progress-fill').style.width = progressPercent + '%';
+            
+            // Show section content
+            document.getElementById('lesson-section').innerHTML = `
+                <h3 style="color: #ffff00; margin-bottom: 1.5rem;">${section.title}</h3>
+                ${section.content}
+            `;
+            
+            // Update navigation buttons
+            const prevBtn = document.getElementById('prev-section-btn');
+            const nextBtn = document.getElementById('next-section-btn');
+            
+            if (lessonState.currentIndex === 0) {
+                prevBtn.style.display = 'none';
+            } else {
+                prevBtn.style.display = 'inline-block';
+            }
+            
+            if (lessonState.currentIndex === lessonState.totalSections - 1) {
+                nextBtn.textContent = 'LESSON COMPLETE!';
+                nextBtn.onclick = completeLessonSection;
+            } else {
+                nextBtn.textContent = 'NEXT';
+                nextBtn.onclick = nextLessonSection;
+            }
+            
+            // Scroll to top of lesson content
+            document.getElementById('lesson-section').scrollTop = 0;
+        }
+        
+        function nextLessonSection() {
+            if (lessonState.currentIndex < lessonState.totalSections - 1) {
+                lessonState.currentIndex++;
+                showLessonSection();
+                playCorrect(); // Progress sound
+            }
+        }
+        
+        function prevLessonSection() {
+            if (lessonState.currentIndex > 0) {
+                lessonState.currentIndex--;
+                showLessonSection();
+                playCorrect(); // Navigation sound
+            }
+        }
+        
+        function completeLessonSection() {
+            // Hide navigation and show knowledge check button
+            document.getElementById('lesson-navigation').style.display = 'none';
+            document.getElementById('start-quiz-container').style.display = 'block';
+            
+            // Update lesson progress
+            playerProgress.lessonProgress[currentLesson] = 'completed';
+            
+            // Check for first lesson achievement
+            if (!playerProgress.achievements.includes('first_lesson')) {
+                playerProgress.achievements.push('first_lesson');
+                showAchievementNotification('first_lesson');
+            }
+            
+            saveProgress();
+            
+            // Update section content to congratulations
+            document.getElementById('lesson-section').innerHTML = `
+                <div style="text-align: center;">
+                    <h3 style="color: #00ff00; margin-bottom: 2rem; font-size: 2rem;">🎉 LESSON COMPLETE! 🎉</h3>
+                    <p style="font-size: 1.3rem; margin: 1rem 0; color: #00ffff;">
+                        Great job working through all the ${currentLesson} concepts!
+                    </p>
+                    <p style="font-size: 1.1rem; margin: 2rem 0;">
+                        You've learned about the key concepts, terms, and methods for ${currentLesson}.
+                        Now it's time to test your understanding!
+                    </p>
+                    <p style="color: #ffff00; margin: 2rem 0;">
+                        Click the Knowledge Check button below to see how much you've mastered.
+                    </p>
+                </div>
+            `;
+            
+            playCorrect(); // Completion sound
+        }
+        
+        function checkLessonAnswer(correctAnswer) {
+            const userAnswer = parseInt(document.getElementById('lesson-practice-answer').value);
+            const feedback = document.getElementById('lesson-answer-feedback');
+            
+            if (userAnswer === correctAnswer) {
+                feedback.style.color = '#00ffff';
+                feedback.textContent = '✓ Excellent! You got it right!';
+                playCorrect();
+            } else {
+                feedback.style.color = '#ff0000';
+                feedback.textContent = `✗ Not quite. The answer is ${correctAnswer}. Keep practicing!`;
+                playIncorrect();
+            }
+        }
+        
+        // Knowledge Check System
+        function startKnowledgeCheck() {
+            console.log('Starting Knowledge Check for:', currentLesson);
+            
+            // Hide lesson content and show quiz
+            document.getElementById('lesson-content').style.display = 'none';
+            document.getElementById('knowledge-check').style.display = 'block';
+            document.getElementById('quiz-results').style.display = 'none';
+            
+            // Reset quiz state
+            quizState = {
+                questions: generateQuestions(currentLesson),
+                currentIndex: 0,
+                answers: [],
+                score: 0
+            };
+            
+            console.log('Generated questions for', currentLesson, ':', quizState.questions.length, 'questions');
+            console.log('First question:', quizState.questions[0]?.question);
+            
+            // Show first question
+            showQuestion();
+        }
+        
+        function generateQuestions(operation) {
+            console.log('generateQuestions called with operation:', operation);
+            const questionSets = {
+                addition: [
+                    {
+                        question: "What does addition mean?",
+                        options: ["Taking things away", "Combining things together", "Making groups", "Sharing equally"],
+                        correct: 1,
+                        explanation: "Addition means combining or putting things together to find a total."
+                    },
+                    {
+                        question: "What is 4 + 3?",
+                        options: ["6", "7", "8", "9"],
+                        correct: 1,
+                        explanation: "4 + 3 = 7. You can count up from 4: 5, 6, 7."
+                    },
+                    {
+                        question: "Which strategy helps you add numbers like 8 + 5?",
+                        options: ["Count backwards", "Make 10 first", "Skip counting", "Subtract instead"],
+                        correct: 1,
+                        explanation: "The 'make 10' strategy: break 5 into 2+3, so 8+2=10, then 10+3=13."
+                    },
+                    {
+                        question: "What is 6 + 4?",
+                        options: ["9", "10", "11", "12"],
+                        correct: 1,
+                        explanation: "6 + 4 = 10. This is a doubles-plus-one fact: 5+5=10, so 6+4=10."
+                    },
+                    {
+                        question: "If you have 3 apples and get 5 more, how many do you have total?",
+                        options: ["7", "8", "9", "10"],
+                        correct: 1,
+                        explanation: "3 + 5 = 8 apples. You're combining the two groups together."
+                    }
+                ],
+                subtraction: [
+                    {
+                        question: "What does subtraction mean?",
+                        options: ["Adding things together", "Taking things away", "Making equal groups", "Counting forward"],
+                        correct: 1,
+                        explanation: "Subtraction means taking away or removing some amount from a starting number."
+                    },
+                    {
+                        question: "What is 9 - 4?",
+                        options: ["4", "5", "6", "7"],
+                        correct: 1,
+                        explanation: "9 - 4 = 5. You can count down from 9: 8, 7, 6, 5."
+                    },
+                    {
+                        question: "If you have 10 cookies and eat 3, how many are left?",
+                        options: ["6", "7", "8", "9"],
+                        correct: 1,
+                        explanation: "10 - 3 = 7 cookies. You're taking away 3 from the original 10."
+                    },
+                    {
+                        question: "What is 12 - 6?",
+                        options: ["5", "6", "7", "8"],
+                        correct: 1,
+                        explanation: "12 - 6 = 6. You can think: what plus 6 equals 12? The answer is 6."
+                    },
+                    {
+                        question: "Which strategy can help you solve 14 - 7?",
+                        options: ["Count up from 7 to 14", "Skip count by 2s", "Use multiplication", "Add 7 + 7"],
+                        correct: 0,
+                        explanation: "Count up from 7: 8, 9, 10, 11, 12, 13, 14. That's 7 steps, so 14 - 7 = 7."
+                    }
+                ],
+                multiplication: [
+                    {
+                        question: "What is multiplication?",
+                        options: ["Taking things away", "Sharing equally", "Repeated addition", "Finding differences"],
+                        correct: 2,
+                        explanation: "Multiplication is repeated addition - adding the same number multiple times."
+                    },
+                    {
+                        question: "What is 3 × 4?",
+                        options: ["7", "10", "12", "15"],
+                        correct: 2,
+                        explanation: "3 × 4 = 12. Think of it as 3 + 3 + 3 + 3 = 12, or 3 groups of 4."
+                    },
+                    {
+                        question: "How can you solve 5 × 2 using repeated addition?",
+                        options: ["2 + 2 + 2 + 2 + 2", "5 + 5", "5 + 2", "5 - 2 - 2 - 2 - 2"],
+                        correct: 0,
+                        explanation: "5 × 2 means 5 groups of 2, so 2 + 2 + 2 + 2 + 2 = 10."
+                    },
+                    {
+                        question: "What is 4 × 3?",
+                        options: ["7", "10", "12", "15"],
+                        correct: 2,
+                        explanation: "4 × 3 = 12. You can think of 4 groups with 3 items each."
+                    },
+                    {
+                        question: "If you have 6 boxes with 2 toys in each box, how many toys total?",
+                        options: ["8", "10", "12", "14"],
+                        correct: 2,
+                        explanation: "6 × 2 = 12 toys. Each of the 6 boxes has 2 toys."
+                    }
+                ],
+                division: [
+                    {
+                        question: "What does division mean?",
+                        options: ["Adding repeatedly", "Combining groups", "Splitting into equal parts", "Making things bigger"],
+                        correct: 2,
+                        explanation: "Division means splitting into equal groups or sharing equally."
+                    },
+                    {
+                        question: "What is 12 ÷ 3?",
+                        options: ["3", "4", "5", "6"],
+                        correct: 1,
+                        explanation: "12 ÷ 3 = 4. You can split 12 items into 3 equal groups of 4 each."
+                    },
+                    {
+                        question: "If you have 15 stickers to share equally among 3 friends, how many does each friend get?",
+                        options: ["4", "5", "6", "7"],
+                        correct: 1,
+                        explanation: "15 ÷ 3 = 5 stickers per friend. You're sharing 15 items equally among 3 people."
+                    },
+                    {
+                        question: "What is 20 ÷ 4?",
+                        options: ["4", "5", "6", "7"],
+                        correct: 1,
+                        explanation: "20 ÷ 4 = 5. Think: what number times 4 equals 20? The answer is 5."
+                    },
+                    {
+                        question: "How can division help you solve 18 ÷ 6?",
+                        options: ["Think: what × 6 = 18?", "Add 18 + 6", "Subtract 18 - 6", "Count by 2s"],
+                        correct: 0,
+                        explanation: "Think multiplication: what number times 6 equals 18? The answer is 3, so 18 ÷ 6 = 3."
+                    }
+                ]
+            };
+            
+            const questions = questionSets[operation] || [];
+            console.log('Returning', questions.length, 'questions for operation:', operation);
+            return questions;
+        }
+        
+        function showQuestion() {
+            const question = quizState.questions[quizState.currentIndex];
+            
+            // Update progress
+            document.getElementById('current-question').textContent = quizState.currentIndex + 1;
+            document.getElementById('total-questions').textContent = quizState.questions.length;
+            
+            // Show question
+            document.getElementById('quiz-question').textContent = question.question;
+            
+            // Create options
+            const optionsDiv = document.getElementById('quiz-options');
+            optionsDiv.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.style.cssText = `
+                    padding: 1rem 2rem;
+                    background: rgba(0, 255, 0, 0.1);
+                    border: 2px solid #00ff00;
+                    color: #00ff00;
+                    cursor: pointer;
+                    font-family: 'Orbitron', monospace;
+                    font-size: 1rem;
+                    transition: all 0.3s;
+                `;
+                
+                button.addEventListener('mouseover', () => {
+                    button.style.background = 'rgba(0, 255, 0, 0.2)';
+                });
+                
+                button.addEventListener('mouseout', () => {
+                    button.style.background = 'rgba(0, 255, 0, 0.1)';
+                });
+                
+                button.addEventListener('click', () => selectAnswer(index));
+                
+                optionsDiv.appendChild(button);
+            });
+            
+            // Clear feedback and hide navigation
+            document.getElementById('quiz-feedback').textContent = '';
+            document.getElementById('next-question-btn').style.display = 'none';
+            document.getElementById('finish-quiz-btn').style.display = 'none';
+        }
+        
+        function selectAnswer(selectedIndex) {
+            const question = quizState.questions[quizState.currentIndex];
+            const correct = selectedIndex === question.correct;
+            
+            // Store answer
+            quizState.answers.push({
+                questionIndex: quizState.currentIndex,
+                selectedIndex: selectedIndex,
+                correct: correct,
+                explanation: question.explanation
+            });
+            
+            if (correct) {
+                quizState.score++;
+            }
+            
+            // Update option styles to show correct/incorrect
+            const optionButtons = document.getElementById('quiz-options').children;
+            for (let i = 0; i < optionButtons.length; i++) {
+                const button = optionButtons[i];
+                button.style.pointerEvents = 'none'; // Disable further clicks
+                
+                if (i === question.correct) {
+                    button.style.background = 'rgba(0, 255, 0, 0.5)';
+                    button.style.color = '#000';
+                } else if (i === selectedIndex && !correct) {
+                    button.style.background = 'rgba(255, 0, 0, 0.5)';
+                    button.style.color = '#fff';
+                }
+            }
+            
+            // Show feedback
+            const feedback = document.getElementById('quiz-feedback');
+            if (correct) {
+                feedback.innerHTML = `<span style="color: #00ffff;">✓ Correct!</span><br>${question.explanation}`;
+                playCorrect();
+            } else {
+                feedback.innerHTML = `<span style="color: #ff0000;">✗ Incorrect.</span><br>${question.explanation}`;
+                playIncorrect();
+            }
+            
+            // Show navigation
+            if (quizState.currentIndex < quizState.questions.length - 1) {
+                document.getElementById('next-question-btn').style.display = 'inline-block';
+            } else {
+                document.getElementById('finish-quiz-btn').style.display = 'inline-block';
+            }
+        }
+        
+        function nextQuestion() {
+            quizState.currentIndex++;
+            showQuestion();
+        }
+        
+        function finishKnowledgeCheck() {
+            // Hide quiz and show results
+            document.getElementById('knowledge-check').style.display = 'none';
+            document.getElementById('quiz-results').style.display = 'block';
+            
+            // Calculate and display results
+            const percentage = Math.round((quizState.score / quizState.questions.length) * 100);
+            
+            document.getElementById('quiz-score').textContent = `${quizState.score}/${quizState.questions.length} (${percentage}%)`;
+            
+            // Track quiz completion
+            playerProgress.statistics.quizzesCompleted.push({
+                operation: currentLesson,
+                score: quizState.score,
+                total: quizState.questions.length,
+                percentage: percentage,
+                date: new Date().toISOString()
+            });
+            
+            // Check for perfect quiz achievement
+            if (percentage === 100 && !playerProgress.achievements.includes('perfect_quiz')) {
+                playerProgress.achievements.push('perfect_quiz');
+                showAchievementNotification('perfect_quiz');
+            }
+            
+            saveProgress();
+            
+            // Determine grade
+            let grade, color;
+            if (percentage >= 90) {
+                grade = "EXCELLENT! 🌟";
+                color = "#00ff00";
+            } else if (percentage >= 80) {
+                grade = "GREAT JOB! 🎉";
+                color = "#00ffff";
+            } else if (percentage >= 70) {
+                grade = "GOOD WORK! 👍";
+                color = "#ffff00";
+            } else if (percentage >= 60) {
+                grade = "NEEDS PRACTICE 📚";
+                color = "#ff9900";
+            } else {
+                grade = "REVIEW NEEDED 🔄";
+                color = "#ff0000";
+            }
+            
+            document.getElementById('quiz-grade').textContent = grade;
+            document.getElementById('quiz-grade').style.color = color;
+            
+            // Show detailed breakdown
+            let breakdown = "<strong>Question Breakdown:</strong><br><br>";
+            quizState.answers.forEach((answer, index) => {
+                const status = answer.correct ? "✓ Correct" : "✗ Incorrect";
+                const statusColor = answer.correct ? "#00ff00" : "#ff0000";
+                breakdown += `<span style="color: ${statusColor};">Q${index + 1}: ${status}</span><br>`;
+            });
+            
+            document.getElementById('quiz-breakdown').innerHTML = breakdown;
+            
+            // Show recommendation
+            let recommendation;
+            if (percentage >= 80) {
+                recommendation = `🎯 <strong>Mastery Achieved!</strong><br>You've demonstrated strong understanding of ${currentLesson}. You're ready to practice problems and move on to new topics!`;
+            } else if (percentage >= 60) {
+                recommendation = `📖 <strong>Good Progress!</strong><br>You understand most concepts but could benefit from reviewing the lesson and trying some practice problems.`;
+            } else {
+                recommendation = `🔄 <strong>Review Recommended</strong><br>Consider reviewing the lesson material and practicing more problems before moving on. Don't worry - learning takes time!`;
+            }
+            
+            document.getElementById('quiz-recommendation').innerHTML = recommendation;
+        }
+        
+        function retryKnowledgeCheck() {
+            startKnowledgeCheck();
+        }
+        
+        function backToLesson() {
+            document.getElementById('lesson-content').style.display = 'block';
+            document.getElementById('knowledge-check').style.display = 'none';
+            document.getElementById('quiz-results').style.display = 'none';
+        }
+        
+        function checkTrainerAnswer(correctAnswer, operation) {
+            const userAnswer = parseInt(document.getElementById('trainer-answer').value);
+            const feedback = document.getElementById('trainer-feedback');
+            
+            if (userAnswer === correctAnswer) {
+                feedback.style.color = '#00ffff';
+                feedback.textContent = '✓ Excellent! You got it right!';
+                playCorrect();
+                
+                // Generate encouragement based on operation
+                const encouragements = {
+                    addition: 'You\'ve mastered combining numbers!',
+                    subtraction: 'Great job with taking away!',
+                    multiplication: 'You understand groups perfectly!',
+                    division: 'You\'re excellent at equal sharing!'
+                };
+                
+                setTimeout(() => {
+                    feedback.textContent += ' ' + encouragements[operation];
+                }, 500);
+            } else {
+                feedback.style.color = '#ff0000';
+                feedback.textContent = `✗ Not quite. The answer is ${correctAnswer}. Try to work through it step by step!`;
+                playIncorrect();
+            }
+        }
+        
+        // Progress Tracking System
+        let playerProgress = {
+            playerName: 'Hacker',
+            createdDate: null,
+            lastPlayed: null,
+            skillLevels: {
+                addition: { level: 1, masteryScore: 0, problemsSolved: 0, totalAttempts: 0 },
+                subtraction: { level: 1, masteryScore: 0, problemsSolved: 0, totalAttempts: 0 },
+                multiplication: { level: 1, masteryScore: 0, problemsSolved: 0, totalAttempts: 0 },
+                division: { level: 1, masteryScore: 0, problemsSolved: 0, totalAttempts: 0 }
+            },
+            achievements: [],
+            statistics: {
+                totalProblems: 0,
+                totalCorrect: 0,
+                bestStreak: 0,
+                timeSpent: 0, // in seconds
+                lessonsCompleted: [],
+                quizzesCompleted: []
+            },
+            lessonProgress: {
+                addition: 'not_started',
+                subtraction: 'not_started',
+                multiplication: 'not_started',
+                division: 'not_started'
+            }
+        };
+        
+        // Achievement definitions
+        const achievements = {
+            first_lesson: { name: "📚 First Lesson", description: "Complete your first lesson", icon: "📚" },
+            perfect_quiz: { name: "🌟 Perfect Quiz", description: "Score 100% on any knowledge check", icon: "🌟" },
+            streak_5: { name: "🔥 Hot Streak", description: "Get 5 problems correct in a row", icon: "🔥" },
+            streak_10: { name: "⚡ Lightning Strike", description: "Get 10 problems correct in a row", icon: "⚡" },
+            hundred_problems: { name: "💯 Century", description: "Solve 100 problems total", icon: "💯" },
+            all_lessons: { name: "🎓 Graduate", description: "Complete all 4 lessons", icon: "🎓" },
+            speed_demon: { name: "🏃 Speed Demon", description: "Complete a timed game in under 20 seconds", icon: "🏃" },
+            practice_master: { name: "🎯 Practice Master", description: "Get 90% accuracy in practice mode", icon: "🎯" },
+            persistent: { name: "📅 Persistent", description: "Play for 3 days in a row", icon: "📅" },
+            math_wizard: { name: "🧙 Math Wizard", description: "Master all 4 operations", icon: "🧙" },
+            explorer: { name: "🗺️ Explorer", description: "Try all game modes", icon: "🗺️" },
+            dedicated: { name: "⏱️ Dedicated", description: "Spend 1 hour playing total", icon: "⏱️" }
+        };
+        
+        // Load progress from localStorage
+        function loadProgress() {
+            const saved = localStorage.getItem('mathHackProgress');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    playerProgress = { ...playerProgress, ...parsed };
+                    
+                    // Ensure all required fields exist (for version compatibility)
+                    if (!playerProgress.createdDate) {
+                        playerProgress.createdDate = new Date().toISOString();
+                    }
+                    if (!playerProgress.achievements) {
+                        playerProgress.achievements = [];
+                    }
+                    if (!playerProgress.lessonProgress) {
+                        playerProgress.lessonProgress = {
+                            addition: 'not_started',
+                            subtraction: 'not_started',
+                            multiplication: 'not_started',
+                            division: 'not_started'
+                        };
+                    }
+                } catch (e) {
+                    console.error('Failed to load progress:', e);
+                    // Keep default playerProgress
+                }
+            } else {
+                // First time player
+                playerProgress.createdDate = new Date().toISOString();
+                saveProgress();
+            }
+            
+            playerProgress.lastPlayed = new Date().toISOString();
+        }
+        
+        // Save progress to localStorage
+        function saveProgress() {
+            try {
+                localStorage.setItem('mathHackProgress', JSON.stringify(playerProgress));
+            } catch (e) {
+                console.error('Failed to save progress:', e);
+            }
+        }
+        
+        // Update skill progress
+        function updateSkillProgress(operation, correct, timeTaken = 0) {
+            const skill = playerProgress.skillLevels[operation];
+            skill.totalAttempts++;
+            playerProgress.statistics.totalProblems++;
+            
+            if (correct) {
+                skill.problemsSolved++;
+                playerProgress.statistics.totalCorrect++;
+                
+                // Update mastery score (weighted average with recency bias)
+                const accuracy = skill.problemsSolved / skill.totalAttempts;
+                skill.masteryScore = Math.round(accuracy * 100);
+                
+                // Level progression based on problems solved and accuracy
+                if (skill.problemsSolved >= 10 && skill.masteryScore >= 70) skill.level = Math.max(skill.level, 2);
+                if (skill.problemsSolved >= 25 && skill.masteryScore >= 80) skill.level = Math.max(skill.level, 3);
+                if (skill.problemsSolved >= 50 && skill.masteryScore >= 85) skill.level = Math.max(skill.level, 4);
+                if (skill.problemsSolved >= 100 && skill.masteryScore >= 90) skill.level = Math.max(skill.level, 5);
+            }
+            
+            // Add time spent
+            playerProgress.statistics.timeSpent += timeTaken;
+            
+            // Check achievements
+            checkAchievements();
+            saveProgress();
+        }
+        
+        // Check and award achievements
+        function checkAchievements() {
+            const stats = playerProgress.statistics;
+            const newAchievements = [];
+            
+            // First lesson
+            if (playerProgress.lessonProgress.addition === 'completed' && 
+                !playerProgress.achievements.includes('first_lesson')) {
+                newAchievements.push('first_lesson');
+            }
+            
+            // Perfect quiz (checked elsewhere when quiz completes)
+            
+            // Streak achievements (tracked during games)
+            
+            // Century
+            if (stats.totalProblems >= 100 && !playerProgress.achievements.includes('hundred_problems')) {
+                newAchievements.push('hundred_problems');
+            }
+            
+            // Graduate
+            const completedLessons = Object.values(playerProgress.lessonProgress).filter(status => status === 'completed').length;
+            if (completedLessons >= 4 && !playerProgress.achievements.includes('all_lessons')) {
+                newAchievements.push('all_lessons');
+            }
+            
+            // Math Wizard
+            const masteredOperations = Object.values(playerProgress.skillLevels).filter(skill => skill.level >= 4).length;
+            if (masteredOperations >= 4 && !playerProgress.achievements.includes('math_wizard')) {
+                newAchievements.push('math_wizard');
+            }
+            
+            // Dedicated
+            if (stats.timeSpent >= 3600 && !playerProgress.achievements.includes('dedicated')) {
+                newAchievements.push('dedicated');
+            }
+            
+            // Award new achievements
+            newAchievements.forEach(achievement => {
+                if (!playerProgress.achievements.includes(achievement)) {
+                    playerProgress.achievements.push(achievement);
+                    showAchievementNotification(achievement);
+                }
+            });
+        }
+        
+        // Show achievement notification
+        function showAchievementNotification(achievementId) {
+            const achievement = achievements[achievementId];
+            if (!achievement) return;
+            
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(45deg, #00ff00, #00cc00);
+                color: #000;
+                padding: 1rem 2rem;
+                border-radius: 10px;
+                font-family: 'Orbitron', monospace;
+                font-weight: bold;
+                z-index: 10000;
+                animation: slideIn 0.5s ease-out;
+                box-shadow: 0 10px 30px rgba(0, 255, 0, 0.5);
+            `;
+            
+            notification.innerHTML = `
+                <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🎉 ACHIEVEMENT UNLOCKED!</div>
+                <div style="font-size: 1.2rem;">${achievement.icon} ${achievement.name}</div>
+                <div style="font-size: 0.9rem; opacity: 0.8;">${achievement.description}</div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Remove after 4 seconds
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.5s ease-in';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 500);
+            }, 4000);
+            
+            // Play achievement sound
+            playCorrect();
+        }
+        
+        // Progress Dashboard Functions
+        function showProgress() {
+            hideAllScreens();
+            document.getElementById('progress-dashboard').style.display = 'block';
+            updateProgressDisplay();
+        }
+        
+        function updateProgressDisplay() {
+            // Player info
+            document.getElementById('player-name').textContent = playerProgress.playerName;
+            document.getElementById('player-since').textContent = new Date(playerProgress.createdDate).toLocaleDateString();
+            document.getElementById('last-played').textContent = new Date(playerProgress.lastPlayed).toLocaleDateString();
+            
+            // Overall stats
+            const stats = playerProgress.statistics;
+            document.getElementById('total-problems').textContent = stats.totalProblems;
+            document.getElementById('total-accuracy').textContent = stats.totalProblems > 0 ? 
+                Math.round((stats.totalCorrect / stats.totalProblems) * 100) + '%' : '0%';
+            document.getElementById('best-streak').textContent = stats.bestStreak;
+            document.getElementById('time-played').textContent = Math.floor(stats.timeSpent / 60) + 'm';
+            
+            // Skill progress
+            updateSkillProgressDisplay();
+            
+            // Achievements
+            updateAchievementsDisplay();
+        }
+        
+        function updateSkillProgressDisplay() {
+            const container = document.getElementById('skill-progress-list');
+            container.innerHTML = '';
+            
+            const operations = ['addition', 'subtraction', 'multiplication', 'division'];
+            const operationNames = {
+                addition: 'Addition (+)',
+                subtraction: 'Subtraction (-)', 
+                multiplication: 'Multiplication (×)',
+                division: 'Division (÷)'
+            };
+            
+            operations.forEach(op => {
+                const skill = playerProgress.skillLevels[op];
+                const lessonStatus = playerProgress.lessonProgress[op];
+                
+                const progressBar = document.createElement('div');
+                progressBar.style.cssText = 'margin-bottom: 1.5rem; padding: 1rem; background: rgba(0, 255, 255, 0.1); border-radius: 5px;';
+                
+                // Determine level color
+                let levelColor = '#666';
+                if (skill.level >= 5) levelColor = '#ff00ff'; // Master
+                else if (skill.level >= 4) levelColor = '#00ffff'; // Expert  
+                else if (skill.level >= 3) levelColor = '#ffff00'; // Advanced
+                else if (skill.level >= 2) levelColor = '#00ff00'; // Intermediate
+                else levelColor = '#ff9900'; // Beginner
+                
+                progressBar.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <span style="font-size: 1.2rem; color: #00ffff;">${operationNames[op]}</span>
+                        <span style="color: ${levelColor}; font-weight: bold;">Level ${skill.level}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                        <span>Mastery: ${skill.masteryScore}%</span>
+                        <span>Problems: ${skill.problemsSolved}/${skill.totalAttempts}</span>
+                        <span>Lesson: ${lessonStatus.replace('_', ' ').toUpperCase()}</span>
+                    </div>
+                    <div style="background: rgba(0, 0, 0, 0.3); height: 10px; border-radius: 5px;">
+                        <div style="background: linear-gradient(90deg, ${levelColor}, #00ff00); height: 100%; width: ${skill.masteryScore}%; border-radius: 5px; transition: width 0.5s ease;"></div>
+                    </div>
+                `;
+                
+                container.appendChild(progressBar);
+            });
+        }
+        
+        function updateAchievementsDisplay() {
+            const container = document.getElementById('achievements-grid');
+            container.innerHTML = '';
+            
+            Object.entries(achievements).forEach(([id, achievement]) => {
+                const earned = playerProgress.achievements.includes(id);
+                
+                const achievementCard = document.createElement('div');
+                achievementCard.style.cssText = `
+                    padding: 1rem;
+                    border-radius: 5px;
+                    text-align: center;
+                    ${earned ? 
+                        'background: rgba(0, 255, 0, 0.2); border: 2px solid #00ff00; color: #00ff00;' :
+                        'background: rgba(100, 100, 100, 0.1); border: 2px solid #666; color: #666;'
+                    }
+                    transition: all 0.3s ease;
+                `;
+                
+                achievementCard.innerHTML = `
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">${earned ? achievement.icon : '🔒'}</div>
+                    <div style="font-weight: bold; margin-bottom: 0.5rem;">${achievement.name}</div>
+                    <div style="font-size: 0.9rem; opacity: 0.8;">${achievement.description}</div>
+                `;
+                
+                container.appendChild(achievementCard);
+            });
+            
+            document.getElementById('achievements-count').textContent = playerProgress.achievements.length;
+            document.getElementById('total-achievements').textContent = Object.keys(achievements).length;
+        }
+        
+        function changePlayerName() {
+            const newName = prompt('Enter your hacker name:', playerProgress.playerName);
+            if (newName && newName.trim()) {
+                playerProgress.playerName = newName.trim();
+                saveProgress();
+                updateProgressDisplay();
+            }
+        }
+        
+        function exportProgress() {
+            const dataStr = JSON.stringify(playerProgress, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `math-hack-progress-${playerProgress.playerName}-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+            
+            // Show achievement notification style message
+            alert('📥 Progress exported successfully! Your data has been downloaded.');
+        }
+        
+        function importProgress() {
+            document.getElementById('import-file').click();
+        }
+        
+        function handleImportFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    
+                    // Validate the imported data has required structure
+                    if (imported.playerName && imported.skillLevels && imported.statistics) {
+                        const confirmed = confirm(`Import progress for "${imported.playerName}"?\n\nThis will replace ALL your current progress!`);
+                        if (confirmed) {
+                            playerProgress = { ...playerProgress, ...imported };
+                            saveProgress();
+                            updateProgressDisplay();
+                            alert('📤 Progress imported successfully!');
+                        }
+                    } else {
+                        alert('❌ Invalid progress file format!');
+                    }
+                } catch (error) {
+                    alert('❌ Failed to import progress file!');
+                }
+            };
+            reader.readAsText(file);
+        }
+        
+        function resetProgress() {
+            const confirmed = confirm('⚠️ WARNING: This will delete ALL your progress!\n\nAre you absolutely sure?');
+            if (confirmed) {
+                const doubleConfirm = confirm('🗑️ Last chance! This cannot be undone!\n\nDelete everything?');
+                if (doubleConfirm) {
+                    localStorage.removeItem('mathHackProgress');
+                    // Reset to defaults
+                    playerProgress = {
+                        playerName: 'Hacker',
+                        createdDate: new Date().toISOString(),
+                        lastPlayed: new Date().toISOString(),
+                        skillLevels: {
+                            addition: { level: 1, masteryScore: 0, problemsSolved: 0, totalAttempts: 0 },
+                            subtraction: { level: 1, masteryScore: 0, problemsSolved: 0, totalAttempts: 0 },
+                            multiplication: { level: 1, masteryScore: 0, problemsSolved: 0, totalAttempts: 0 },
+                            division: { level: 1, masteryScore: 0, problemsSolved: 0, totalAttempts: 0 }
+                        },
+                        achievements: [],
+                        statistics: {
+                            totalProblems: 0,
+                            totalCorrect: 0,
+                            bestStreak: 0,
+                            timeSpent: 0,
+                            lessonsCompleted: [],
+                            quizzesCompleted: []
+                        },
+                        lessonProgress: {
+                            addition: 'not_started',
+                            subtraction: 'not_started',
+                            multiplication: 'not_started',
+                            division: 'not_started'
+                        }
+                    };
+                    saveProgress();
+                    updateProgressDisplay();
+                    alert('🗑️ All progress has been reset!');
+                }
+            }
+        }
+        
+        // iPad/Touch device improvements
+        function initTouchSupport() {
+            console.log('Initializing touch support...');
+            
+            // Map onclick functions to actual functions
+            const functionMap = {
+                'showDifficulty()': showDifficulty,
+                'startPracticeMode()': startPracticeMode,
+                'showTrainer()': showTrainer,
+                'showProgress()': showProgress,
+                'showLeaderboard()': showLeaderboard,
+                'showInstructions()': showInstructions,
+                'toggleSound()': toggleSound,
+                'showMenu()': showMenu,
+                'checkAnswer()': checkAnswer,
+                'checkPracticeAnswer()': checkPracticeAnswer
+            };
+            
+            // Add touch event listeners to buttons with onclick attributes
+            const buttons = document.querySelectorAll('[onclick]');
+            console.log('Found', buttons.length, 'buttons with onclick attributes');
+            
+            buttons.forEach((button, index) => {
+                const onclickAttr = button.getAttribute('onclick');
+                console.log('Button', index, 'onclick:', onclickAttr);
+                
+                button.addEventListener('touchend', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Touch event triggered for:', onclickAttr);
+                    
+                    // Try to execute the mapped function
+                    const func = functionMap[onclickAttr];
+                    if (func) {
+                        func();
+                    } else if (onclickAttr.includes('startGame(')) {
+                        // Handle difficulty selection
+                        const match = onclickAttr.match(/startGame\('(\w+)'\)/);
+                        if (match) {
+                            startGame(match[1]);
+                        }
+                    } else if (onclickAttr.includes('showLesson(')) {
+                        // Handle lesson selection
+                        const match = onclickAttr.match(/showLesson\('(\w+)'\)/);
+                        if (match) {
+                            showLesson(match[1]);
+                        }
+                    } else {
+                        // Fallback to eval for complex functions
+                        try {
+                            eval(onclickAttr);
+                        } catch (error) {
+                            console.error('Error executing onclick:', error);
+                        }
+                    }
+                }, { passive: false });
+                
+                // Add visual feedback
+                button.addEventListener('touchstart', function() {
+                    this.style.transform = 'scale(0.98)';
+                    this.style.background = 'rgba(0, 255, 0, 0.3)';
+                }, { passive: true });
+                
+                button.addEventListener('touchend', function() {
+                    setTimeout(() => {
+                        this.style.transform = '';
+                        this.style.background = '';
+                    }, 150);
+                }, { passive: true });
+            });
+            
+            // Improve input focus on touch devices
+            const inputs = document.querySelectorAll('input[type="number"]');
+            inputs.forEach(input => {
+                input.addEventListener('touchstart', function() {
+                    this.focus();
+                }, { passive: true });
+            });
+            
+            console.log('Touch support initialized');
+        }
+        
+        // Initialize
+        window.onload = function() {
+            initMatrixBackground();
+            loadProgress();
+            showMenu();
+            initTouchSupport();
+        };
+    </script>
+</body>
+</html>
